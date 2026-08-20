@@ -6,7 +6,7 @@ async fn main() {
         .with_env_filter(EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()))
         .init();
 
-    let srv = redis_rs::server::Server::new(redis_rs::server::Config::default());
+    let srv = foundry::server::Server::new(foundry::server::Config::default());
 
     tokio::select! {
         res = srv.listen_and_serve() => {

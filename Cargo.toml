@@ -1,5 +1,5 @@
 [package]
-name = "redis-rs"
+name = "redisops"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,11 +11,11 @@ ratatui = "0.29"
 crossterm = "0.28"
 
 [[bin]]
-name = "redis-rs"
+name = "redisops"
 path = "src/main.rs"
 
 [[bin]]
-name = "redis-tui"
+name = "redisops-tui"
 path = "src/bin/redis-tui.rs"
 
 [dev-dependencies]
