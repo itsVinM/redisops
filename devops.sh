@@ -6,7 +6,7 @@ set -euo pipefail
 # ──────────────────────────────────────────────────────────────
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REDIS_DIR="$SCRIPT_DIR"
+REDIS_DIR="$SCRIPT_DIR/redisdb"
 SANDBOX_DIR="$SCRIPT_DIR/sandbox"
 BUILD_DIR="$SANDBOX_DIR/build"
 LOG_DIR="$SCRIPT_DIR/.devops-logs"
@@ -70,7 +70,7 @@ cmd_build() {
 # ──────────────────────────────────────────────────────────────
 
 start_redis() {
-    if pgrep -f "redis-rs" > /dev/null 2>&1; then
+    if pgrep -f "redisops" > /dev/null 2>&1; then
         warn "Redis server already running"
         return 0
     fi
@@ -78,7 +78,7 @@ start_redis() {
     log "Starting Redis server on ${REDIS_HOST}:${REDIS_PORT}..."
     mkdir -p "$LOG_DIR" "$PID_DIR"
 
-    RUST_LOG=info "$REDIS_DIR/target/release/redis-rs" \
+    RUST_LOG=info "$REDIS_DIR/target/release/redisops" \
         > "$LOG_DIR/redis.log" 2>&1 &
     echo $! > "$PID_DIR/redis.pid"
 

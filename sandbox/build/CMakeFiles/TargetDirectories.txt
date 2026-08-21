@@ -1,0 +1,3 @@
+/Users/vins/Documents/coding/redis-rs/sandbox/build/CMakeFiles/sandbox.dir
+/Users/vins/Documents/coding/redis-rs/sandbox/build/CMakeFiles/edit_cache.dir
+/Users/vins/Documents/coding/redis-rs/sandbox/build/CMakeFiles/rebuild_cache.dir

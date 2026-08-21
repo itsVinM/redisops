@@ -1,105 +1,46 @@
-# foundry
+# RedisOps
 
-Validation & orchestration platform. Redis state store in Rust, sandboxed execution in C++20.
-
-## What
-
-A self-hosted CI system for hardware validation. Submit test jobs, run them in isolated sandboxes (Linux namespaces + cgroups + seccomp), collect metrics, deploy firmware.
-
-```
-┌──────────┐     ┌───────────┐     ┌──────────────┐
-│   CLI    │────►│  Redis-rs │────►│ C++20 Sandbox│
-│ (submit, │     │  (state,  │     │ (clone,      │
-│  status) │     │  queue,   │     │  cgroup,     │
-│          │     │  metrics) │     │  seccomp)    │
-└──────────┘     └───────────┘     └──────────────┘
-```
+A Redis-compatible state store with B-tree storage, time-series DB, and job orchestration.
 
 ## Quick Start
 
 ```bash
-./devops.sh build       # build Rust + C++
-./devops.sh start       # start Redis server + sandbox
-./devops.sh submit test "echo hello"  # submit a job
-./devops.sh list        # list all jobs
-./devops.sh status      # check system status
-./devops.sh stop        # stop everything
+cd redisdb && cargo run
+redis-cli -p 6379
 ```
 
-## Commands
+## Features
 
-### System
-| Command | Description |
-|---------|-------------|
-| `./devops.sh build` | Build Rust server + C++20 sandbox |
-| `./devops.sh start` | Start Redis server + sandbox |
-| `./devops.sh stop` | Stop all services |
-| `./devops.sh status` | Show system status |
-| `./devops.sh test` | Run all tests (Rust + C++) |
+- **KV Store**: `SET`, `GET`, `DEL`, `EXPIRE`, `TTL`
+- **Lists**: `LPUSH`, `RPOP`, `LRANGE`, `LINDEX`, `LLEN`
+- **Bitfields**: `SETBIT`, `GETBIT`, `BITCOUNT`, `BFGET`, `BFSET`
+- **Sorted Sets**: `ZADD`, `ZREM`, `ZSCORE`, `ZQUERY`
+- **Time-Series**: `TS.ADD`, `TS.RANGE`, `TS.INFO`, `TS.LIST`
+- **Job Queue**: `JOB.SUBMIT`, `JOB.NEXT`, `JOB.RESULT`, `JOB.STATUS`
+- **Metrics**: `METRIC.RECORD`, `METRIC.QUERY`, `METRIC.SUMMARY`
+- **Sandbox**: `SANDBOX.REGISTER`, `SANDBOX.CLAIM`, `SANDBOX.RELEASE`
+- **Storage**: Custom B-tree with buffer pool + WAL
 
-### Jobs
-| Command | Description |
-|---------|-------------|
-| `./devops.sh submit <name> <cmd> [target]` | Submit a validation job |
-| `./devops.sh next` | Fetch next job from queue |
-| `./devops.sh result <id> <exit> <ms>` | Record job result |
-| `./devops.sh list [status]` | List jobs |
+## Testing
 
-### Redis Commands (added)
-| Command | Description |
-|---------|-------------|
-| `JOB SUBMIT/NEXT/STATUS/RESULT/LOG/LIST` | Job queue management |
-| `METRIC RECORD/QUERY/SUMMARY` | Time-series metrics |
-| `SANDBOX REGISTER/CLAIM/RELEASE/STATUS` | Sandbox lifecycle |
-| `SETBIT/GETBIT/BITCOUNT/BFGET/BFSET` | Bitfield operations |
-| `LPUSH/LPOP/RPOP/LRANGE/LLEN/LREM` | List/queue primitives |
+```bash
+# Unit tests (37 tests)
+cargo test
 
-## Architecture
+# CI checks (format + clippy + tests + build)
+bash ci.sh
+```
+
+## Project Structure
 
 ```
 redis-rs/
-├── src/                    # Rust: Redis server + DevOps commands
-│   ├── main.rs             # Entry point
-│   ├── server.rs           # TCP listener, connection pool
-│   ├── handler.rs          # Command dispatch (SET/GET/JOB/METRIC/SANDBOX)
-│   ├── store/mod.rs        # KV store + Lists + Bitfields + TTL
-│   ├── proto/mod.rs        # Binary wire protocol
-│   └── stats.rs            # Connection/command stats
-├── sandbox/                # C++20: Isolated execution runtime
-│   ├── include/devops/     # Headers
-│   │   ├── redis_client.hpp
-│   │   ├── sandbox.hpp
-│   │   ├── cgroup.hpp
-│   │   └── seccomp.hpp
-│   └── src/                # Implementation
-│       ├── main.cpp        # Orchestrator loop
-│       ├── redis_client.cpp
-│       ├── sandbox.cpp     # Linux namespace isolation
-│       ├── cgroup.cpp      # cgroups v2 limits
-│       └── seccomp.cpp     # Syscall filtering
-├── tests/                  # Rust tests (37 passing)
-└── devops.sh               # Orchestration script
+├── redisdb/          # Rust server
+│   ├── src/btree/    # B-tree storage engine
+│   ├── src/tsdb/     # Time-series database
+│   ├── src/handler.rs # Command dispatch
+│   └── tests/
+├── sandbox/          # C++20 sandbox runtime
+├── ci.sh            # CI script
+└── devops.sh        # Orchestration
 ```
-
-## Tests
-
-```bash
-# All 37 tests (28 original + 9 DevOps)
-cargo test
-
-# Build & run everything
-./devops.sh test
-```
-
-## Docker
-
-```bash
-USE_DOCKER=true ./devops.sh build --docker
-USE_DOCKER=true ./devops.sh start
-```
-
-## Wire Protocol
-
-Binary (not RESP): `[4B msg_len][4B n_args]([4B arg_len][arg_bytes])*`
-
-Response: `[4B resp_len][tag_byte][data...]`

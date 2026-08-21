@@ -84,6 +84,9 @@ std::optional<Response> RedisClient::send(const std::vector<std::string>& args) 
     return read_response();
 }
 
+// Helper to parse from buffer (forward declaration)
+static std::optional<Response> read_value_from(const std::vector<uint8_t>& buf, size_t& pos);
+
 std::optional<Response> RedisClient::read_response() {
     uint32_t len;
     if (!read_exact(reinterpret_cast<uint8_t*>(&len), 4)) return std::nullopt;
