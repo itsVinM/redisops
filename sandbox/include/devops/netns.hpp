@@ -4,6 +4,8 @@
 #include <vector>
 #include <functional>
 #include <memory>
+#include <optional>
+#include <unordered_map>
 #include <thread>
 #include <atomic>
 #include <sys/types.h>

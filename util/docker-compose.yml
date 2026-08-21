@@ -1,26 +1,25 @@
-version: '3.8'
-
 services:
   redisops:
-    build: .
+    build:
+      context: ..
+      dockerfile: util/Dockerfile
     ports:
-      - "6379:6379"
+      - "1234:1234"
+      - "9090:9090"
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp=unconfined
     volumes:
-      - redisops-data:/data
-    command: ["--port", "6379", "--db", "/data/redisops"]
+      - redisops-data:/app/data
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+      - "9091:9090"
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
     depends_on:
       - redisops
 

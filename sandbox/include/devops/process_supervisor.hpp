@@ -7,6 +7,7 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <optional>
 #include <unordered_map>
 #include <sys/types.h>
 
